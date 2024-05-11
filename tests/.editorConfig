@@ -1,0 +1,5 @@
+[*.cs]
+
+# Remove unnecessary expression value
+# Changed for assertions
+dotnet_diagnostic.IDE0058.severity = none

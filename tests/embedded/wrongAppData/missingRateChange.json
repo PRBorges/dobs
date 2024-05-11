@@ -1,0 +1,11 @@
+{
+  "LastRate": {
+    "UsdRate": 36.28960000,
+    "Day": "2024-04-01"
+  },
+  "PreviousRate": {
+    "UsdRate": 36.33400000,
+    "Day": "2024-03-27"
+  },
+  "SourceUri": "https://www.bcv.org.ve/estadisticas/tipo-cambio-de-referencia-smc"
+}

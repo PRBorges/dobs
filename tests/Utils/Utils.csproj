@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="../embedded/**/*" />
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="CSharpFunctionalExtensions" Version="2.41.0" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\Dobs\Dobs.csproj" />
+    </ItemGroup>
+</Project>
