@@ -95,4 +95,4 @@ Just contact me or open an issue, and we'll go from there.
 ## License
 
 © 2024 Pedro R. Borges(<pedroborg@gmail.com>).
-Released under the MIT License — see the [LICENSE.md](LICENSE.md) file for details. This software carries no warranty of any kind.
+Released under the MIT License — see the [LICENSE](LICENSE) file for details. This software carries no warranty of any kind.
