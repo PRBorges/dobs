@@ -34,12 +34,7 @@ public static class TempFileProvider
     /// <returns>
     /// The path to a newly created file with no content.
     /// </returns>
-    public static string GetEmptyFilePath()
-    {
-        var filePath = GetNonExistentFilePath();
-        File.WriteAllText(filePath, string.Empty);
-        return filePath;
-    }
+    public static string GetEmptyFilePath() => WithContent(string.Empty);
 
     /// <summary>
     /// Creates a new temporary file with the specified content.
