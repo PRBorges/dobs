@@ -11,6 +11,6 @@
       <PackageReference Include="CSharpFunctionalExtensions" Version="2.41.0" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\src\Dobs\Dobs.csproj" />
+      <ProjectReference Include="..\..\src\Dobs\dobs.csproj" />
     </ItemGroup>
 </Project>
