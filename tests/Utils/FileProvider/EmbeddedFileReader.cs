@@ -13,29 +13,6 @@ public static class EmbeddedFileReader
     private static IEnumerable<string> _resourceNames => _asm.GetManifestResourceNames();
 
     /// <summary>
-    /// Gets the full resource name of an embedded file.
-    /// </summary>
-    /// <param name="fileName">The filename of the embedded resource.</param>
-    /// <returns>The full name of the resource, or null if not found.</returns>
-    private static string? GetResourceName(string fileName) => _resourceNames.FirstOrDefault(
-            name => name.EndsWith(fileName, StringComparison.CurrentCulture)
-        );
-
-    /// <summary>
-    /// Reads an embedded resource as a string.
-    /// </summary>
-    /// <param name="resourceName">The name of the embedded resource.</param>
-    /// <returns>The content of the resource as a string, or null if not found.</returns>
-    private static string GetStreamAsString([NotNull] string resourceName)
-    {
-        using (var stream = _asm.GetManifestResourceStream(resourceName))
-        using (var reader = new StreamReader(stream!))
-        {
-            return reader.ReadToEnd();
-        }
-    }
-
-    /// <summary>
     /// Reads an embedded resource as a string.
     /// </summary>
     /// <param name="fileName">The filename of the embedded resource.</param>
@@ -51,7 +28,33 @@ public static class EmbeddedFileReader
     /// </summary>
     /// <param name="subStr">The substring contained in the names of the resources to be read.</param>
     /// <returns>An enumeration of strings representing the content of each resource.</returns>
-    public static IEnumerable<string> WithSubstring(string subStr) =>
-        _resourceNames.Where(name => name.Contains(subStr, StringComparison.CurrentCulture))
-            .Select(GetStreamAsString).AsEnumerable();
+    public static IEnumerable<string> ReadAllWithSubstring(string subStr) =>
+        _resourceNames
+            .Where(name => name.Contains(subStr, StringComparison.CurrentCulture))
+            .Select(GetStreamAsString)
+            .AsEnumerable();
+
+    /// <summary>
+    /// Gets the full resource name of an embedded file.
+    /// </summary>
+    /// <param name="fileName">The filename of the embedded resource.</param>
+    /// <returns>The full name of the resource, or null if not found.</returns>
+    private static string? GetResourceName(string fileName) =>
+        _resourceNames.FirstOrDefault(name =>
+            name.EndsWith(fileName, StringComparison.CurrentCulture)
+        );
+
+    /// <summary>
+    /// Reads an embedded resource as a string.
+    /// </summary>
+    /// <param name="resourceName">The name of the embedded resource.</param>
+    /// <returns>The content of the resource as a string, or null if not found.</returns>
+    private static string GetStreamAsString([NotNull] string resourceName)
+    {
+        using (var stream = _asm.GetManifestResourceStream(resourceName))
+        using (var reader = new StreamReader(stream!))
+        {
+            return reader.ReadToEnd();
+        }
+    }
 }

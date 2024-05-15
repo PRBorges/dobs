@@ -60,8 +60,8 @@ public class DataReadingTest
 public static class DataJsonProducer
 {
     public static IEnumerable<object[]> CorrectJson =>
-        EmbeddedFileReader.WithSubstring("appData").Select(s => new object[] { s });
+        EmbeddedFileReader.ReadAllWithSubstring("appData").Select(s => new object[] { s });
 
     public static IEnumerable<object[]> WrongJson =>
-        EmbeddedFileReader.WithSubstring("wrongAppData").Select(s => new object[] { s });
+        EmbeddedFileReader.ReadAllWithSubstring("wrongAppData").Select(s => new object[] { s });
 }

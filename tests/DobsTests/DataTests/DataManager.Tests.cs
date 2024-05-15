@@ -33,7 +33,7 @@ public class DataManagerTest
     [SkippableFact]
     public void GetAppDataReturnsDefaultIfFileIsWrong()
     {
-        var json = EmbeddedFileReader.WithSubstring("wrongAppData").FirstOrDefault();
+        var json = EmbeddedFileReader.ReadAllWithSubstring("wrongAppData").FirstOrDefault();
         Skip.If(json is null, "No wrong AppData file found.");
         var filePath = TempFileProvider.WithContent(json);
         var dataManager = new DataManager(NullLogger.Instance, filePath);
