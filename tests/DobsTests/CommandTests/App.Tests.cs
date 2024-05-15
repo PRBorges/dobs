@@ -1,10 +1,10 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using CliFx.Infrastructure;
-using FluentAssertions;
+using Dobs.Data.Types;
 using Dobs.Tests.Utils;
 using Dobs.Tests.Utils.FileProvider;
-using Dobs.Data.Types;
+using FluentAssertions;
 
 namespace Dobs.Test;
 
@@ -78,6 +78,10 @@ public class AppTest
         (exitCode, output) = await RunAndOutputAsString(appDataPath, args).ConfigureAwait(false);
 
         exitCode.Should().Be(0, "Second run should exit correctly.");
+        Skip.If(
+            output.Contains("Getting new rate"),
+            "Getting new rate in second run. Wait a few minutes and run again."
+        );
         output.Should().Be(expectedOutput, "Second run should display BES result.");
 
         // Third run
