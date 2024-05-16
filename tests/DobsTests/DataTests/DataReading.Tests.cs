@@ -1,22 +1,29 @@
 using CSharpFunctionalExtensions;
-using FluentAssertions;
 using Dobs.Data;
 using Dobs.Tests.Utils.FileProvider;
+using FluentAssertions;
 
 namespace Dobs.Tests.DataTests;
 
 /// <summary>
-/// Unit tests for DataPersistence class' reading AppData. 
+/// Unit tests for DataPersistence class' reading AppData.
 /// </summary>
+[Collection("TempFileProvider Clients")]
 public class DataReadingTest
 {
+    private readonly TempFileProvider _tempFileProvider;
     private readonly string _readErrorStart = "Problem reading AppData";
+
+    public DataReadingTest(TempFileProvider tempFileProvider)
+    {
+        _tempFileProvider = tempFileProvider;
+    }
 
     [Theory]
     [MemberData(nameof(DataJsonProducer.CorrectJson), MemberType = typeof(DataJsonProducer))]
     public void CorrectFileShouldReadOk(string json)
     {
-        var filePath = TempFileProvider.WithContent(json);
+        var filePath = _tempFileProvider.WithContent(json);
         var rData = DataPersistence.ReadFromFile(filePath);
 
         rData.Should().Succeed("AppData json file is correct.");
@@ -25,7 +32,7 @@ public class DataReadingTest
     [Fact]
     public void ReadFromNonExistentFileShouldFails()
     {
-        var filePath = TempFileProvider.GetNonExistentFilePath();
+        var filePath = _tempFileProvider.GetNonExistentFilePath();
 
         var rData = DataPersistence.ReadFromFile(filePath);
 
@@ -36,7 +43,7 @@ public class DataReadingTest
     [Fact]
     public void ReadEmptyFileShouldFail()
     {
-        var filePath = TempFileProvider.GetEmptyFilePath();
+        var filePath = _tempFileProvider.GetEmptyFilePath();
 
         var rData = DataPersistence.ReadFromFile(filePath);
 
@@ -48,7 +55,7 @@ public class DataReadingTest
     [MemberData(nameof(DataJsonProducer.WrongJson), MemberType = typeof(DataJsonProducer))]
     public void ReadFileWithWrongDataShouldFail(string json)
     {
-        var filePath = TempFileProvider.WithContent(json);
+        var filePath = _tempFileProvider.WithContent(json);
 
         var rData = DataPersistence.ReadFromFile(filePath);
 

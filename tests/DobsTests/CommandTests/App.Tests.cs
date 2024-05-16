@@ -8,8 +8,10 @@ using FluentAssertions;
 
 namespace Dobs.Test;
 
+[Collection("TempFileProvider Clients")]
 public class AppTest
 {
+    private readonly TempFileProvider _tempFileProvider;
     private static readonly AppData _exampleData = TestData.ExampleData;
     private static readonly IFormatProvider _culture = CultureInfo.InvariantCulture;
     private const string _vesPrefix = "Bs.";
@@ -17,12 +19,17 @@ public class AppTest
     private const string _separator = "|";
     private const int _precision = 2;
 
+    public AppTest(TempFileProvider tempFileProvider)
+    {
+        _tempFileProvider = tempFileProvider;
+    }
+
     [SkippableFact]
     public async Task ExitsWithErrorIfInvalidNumberOfDecimals()
     {
         var dataJson = EmbeddedFileReader.ReadAsString("appData.example.json");
         Skip.If(dataJson is null, "Example AppData json file not found.");
-        var appDataPath = TempFileProvider.WithContent(dataJson);
+        var appDataPath = _tempFileProvider.WithContent(dataJson);
         var args = new[] { "10", "-d", "-3" };
 
         var (exitCode, _) = await RunAndOutputAsString(appDataPath, args).ConfigureAwait(false);
@@ -37,7 +44,7 @@ public class AppTest
     {
         var dataJson = EmbeddedFileReader.ReadAsString("appData.example.json");
         Skip.If(dataJson is null, "Example AppData json file not found.");
-        var appDataPath = TempFileProvider.WithContent(dataJson);
+        var appDataPath = _tempFileProvider.WithContent(dataJson);
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 
         var args = Array.Empty<string>();
@@ -79,7 +86,7 @@ public class AppTest
 
         exitCode.Should().Be(0, "Second run should exit correctly.");
         Skip.If(
-            output.Contains("Getting new rate"),
+            output.Contains("Getting new rate", StringComparison.InvariantCulture),
             "Getting new rate in second run. Wait a few minutes and run again."
         );
         output.Should().Be(expectedOutput, "Second run should display BES result.");

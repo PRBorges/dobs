@@ -1,10 +1,10 @@
-using Microsoft.Extensions.Logging.Abstractions;
-using FluentAssertions;
-using Dobs.Data.Types;
-using Dobs.Data;
-using Dobs.Tests.Utils.FileProvider;
-using Dobs.Tests.Utils;
 using CSharpFunctionalExtensions;
+using Dobs.Data;
+using Dobs.Data.Types;
+using Dobs.Tests.Utils;
+using Dobs.Tests.Utils.FileProvider;
+using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using RateProvider.Types;
 
 namespace Dobs.Tests.DataTests;
@@ -12,17 +12,24 @@ namespace Dobs.Tests.DataTests;
 /// <summary>
 /// Unit tests for the DataManager class.
 /// </summary>
+[Collection("TempFileProvider Clients")]
 public class DataManagerTest
 {
+    private readonly TempFileProvider _tempFileProvider;
     private static readonly AppData _exampleAppData = TestData.ExampleData;
     private static readonly AppData _defaultAppData = TestData.DefaultAppData;
+
+    public DataManagerTest(TempFileProvider tempFileProvider)
+    {
+        _tempFileProvider = tempFileProvider;
+    }
 
     // GetAppData Tests
 
     [Fact]
     public void GetAppDataReturnsDefaultIfFileDoesNotExist()
     {
-        var filePath = TempFileProvider.GetNonExistentFilePath();
+        var filePath = _tempFileProvider.GetNonExistentFilePath();
         var dataManager = new DataManager(NullLogger.Instance, filePath);
 
         var appData = dataManager.GetAppData();
@@ -35,7 +42,7 @@ public class DataManagerTest
     {
         var json = EmbeddedFileReader.ReadAllWithSubstring("wrongAppData").FirstOrDefault();
         Skip.If(json is null, "No wrong AppData file found.");
-        var filePath = TempFileProvider.WithContent(json);
+        var filePath = _tempFileProvider.WithContent(json);
         var dataManager = new DataManager(NullLogger.Instance, filePath);
 
         var appData = dataManager.GetAppData();
@@ -48,7 +55,7 @@ public class DataManagerTest
     {
         var json = EmbeddedFileReader.ReadAsString("appData.example.json");
         Skip.If(json is null, "Embedded file example.json not found.");
-        var filePath = TempFileProvider.WithContent(json);
+        var filePath = _tempFileProvider.WithContent(json);
         var dataManager = new DataManager(NullLogger.Instance, filePath);
 
         var appData = dataManager.GetAppData();
@@ -104,7 +111,7 @@ public class DataManagerTest
     [Fact]
     public void StoreAppDataShouldSaveInFile()
     {
-        var filePath = TempFileProvider.GetNonExistentFilePath();
+        var filePath = _tempFileProvider.GetNonExistentFilePath();
         var dataManager = new DataManager(NullLogger.Instance, filePath);
 
         dataManager.StoreAppData(_exampleAppData);
