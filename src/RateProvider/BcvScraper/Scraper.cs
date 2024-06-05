@@ -23,43 +23,39 @@ internal static class Scraper
         var context = BrowsingContext.New(Configuration.Default);
         var document = await context.OpenAsync(req => req.Content(html)).ConfigureAwait(false);
 
-        var rDolarDiv = document.QuerySelector("#dolar").ToResult("No dolar div");
-        if (rDolarDiv.IsFailure)
+        var dolarDiv = document.QuerySelector("#dolar");
+        if (dolarDiv is null)
         {
-            return Result.Failure<Rate<Usd, Ves>>(rDolarDiv.Error);
+            return Result.Failure<Rate<Usd, Ves>>("No dolar div");
         }
-        var rUSDRate = rDolarDiv.Value
+
+        var rMultiplier = dolarDiv
             .QuerySelector("strong")
             .ToResult("No strong element")
             .MapTry(
-                IElement => decimal.Parse(IElement.TextContent.Trim(), new CultureInfo("es-VE")),
-                ex => "Problem parsing usd rate"
+                strongElement =>
+                    decimal.Parse(strongElement.TextContent.Trim(), new CultureInfo("es-VE")),
+                _ => "Problem parsing usd multiplier"
             );
-        if (rUSDRate.IsFailure)
+        if (rMultiplier.IsFailure)
         {
-            return Result.Failure<Rate<Usd, Ves>>(rUSDRate.Error);
+            return Result.Failure<Rate<Usd, Ves>>(rMultiplier.Error);
         }
 
-        var RDateDiv = rDolarDiv.Value.NextElementSibling.ToResult("No sibling for dolarDiv");
-        if (RDateDiv.IsFailure)
-        {
-            return Result.Failure<Rate<Usd, Ves>>(RDateDiv.Error);
-        }
-
-        var RDate = RDateDiv.Value
-            .QuerySelector("span[datatype='xsd:dateTime']")
-            .ToResult("Nodate")
-            .BindTry(
-                spa =>
-                    Result.Success<DateTime, string>(
-                        DateTime.Parse(spa.GetAttribute("content")!, CultureInfo.InvariantCulture)
-                    ),
-                _ => "Date in bad format"
+        var rDate = dolarDiv
+            .NextElementSibling.ToResult("No sibling for dolarDiv")
+            .Bind(div =>
+                div.QuerySelector("span[datatype='xsd:dateTime']").ToResult("No date found")
+            )
+            .MapTry(
+                span =>
+                    DateTime.Parse(span.GetAttribute("content")!, CultureInfo.InvariantCulture),
+                _ => "No date or date in bad format"
             )
             .Map(DateOnly.FromDateTime);
 
-        return RDate.IsSuccess
-            ? Result.Success(new Rate<Usd, Ves>(rUSDRate.Value, RDate.Value))
-            : Result.Failure<Rate<Usd, Ves>>(RDate.Error);
+        return rDate.IsSuccess
+            ? Result.Success(new Rate<Usd, Ves>(rMultiplier.Value, rDate.Value))
+            : Result.Failure<Rate<Usd, Ves>>(rDate.Error);
     }
 }
