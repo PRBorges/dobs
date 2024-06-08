@@ -1,8 +1,8 @@
-using Microsoft.Extensions.Logging.Abstractions;
-using FluentAssertions;
-using RateProvider.Types;
-using RateProvider;
 using Dobs.Tests.Utils;
+using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
+using RateProvider;
+using RateProvider.Types;
 
 namespace Dobs.Tests.BcvRatesTests;
 
@@ -32,7 +32,7 @@ public class BcvRatesTest(HttpClientFixture clientFixture) : IClassFixture<HttpC
         Skip.If(mRate.HasNoValue, "Could not get USD rate from BCV");
         var bcvRate = mRate.Value;
 
-        Skip.If(RatesAreSynchronised(dynRate, bcvRate), "ExchangeDyn rate has nott been updated yet.");
+        Skip.If(DynRateIsBehind(dynRate, bcvRate), "ExchangeDyn rate has nott been updated yet.");
 
         bcvRate.Multiplier.Should().Be(dynRate.usdRate);
     }
@@ -49,21 +49,22 @@ public class BcvRatesTest(HttpClientFixture clientFixture) : IClassFixture<HttpC
     }
 
     /// <summary>
-    /// Private helper method to check if the  rates obtained from
-    /// ExchangeDyn and BCV are from the same date and therefore should be the same.
+    /// Private helper method to check if the  rate from ExchangeDyn
+    /// has not been update to be in sync with the BCV rate.
     /// </summary>
-    /// <param name="dynRate">The rate obtained from ExchangeDyn.</param>
+    /// <param name="dynRate">A triplet with the details of the ExchangeDyn rate.</param>
     /// <param name="bcvRate">The rate obtained from BCV.</param>
-    /// <returns>True if the rates are synchronized, False otherwise.</returns>
-    private static bool RatesAreSynchronised(
+    /// <returns>True if ExchangeDyn rate is not up to date with BcvRate.
+    private static bool DynRateIsBehind(
         (decimal usdRate, DateOnly date, TimeOnly time) dynRate,
         Rate<Usd, Ves> bcvRate
-    ) => bcvRate.Date > dynRate.date
-            && IsDayOfWeek(dynRate.date)
-            && dynRate.time < TestData.RateChangeTimeUtc;
+    ) =>
+        bcvRate.Date > dynRate.date
+        && IsDayOfWeek(dynRate.date)
+        && dynRate.time < TestData.RateChangeTimeUtc;
 
     private static bool IsDayOfWeek(DateOnly date) =>
-date.DayOfWeek is >= DayOfWeek.Monday and <= DayOfWeek.Friday;
+        date.DayOfWeek is >= DayOfWeek.Monday and <= DayOfWeek.Friday;
 }
 
 /// <summary>
