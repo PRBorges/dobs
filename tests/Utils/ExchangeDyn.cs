@@ -26,30 +26,20 @@ public static class ExchangeDyn
     )
     {
         ArgumentNullException.ThrowIfNull(client);
-        var rJson = await GetJsonContent(client).ConfigureAwait(false);
-        if (rJson.IsFailure)
-        {
-            return Result.Failure<(decimal usdRate, DateOnly date, TimeOnly time)>(
-                $"Problem loading ExchangeDyn rate: {rJson.Error}"
-            );
-        }
-
-        var rBcvElement = Result.Try(
-            () =>
-                JsonDocument
-                    .Parse(rJson.Value)
-                    .RootElement.GetProperty("sources")
-                    .GetProperty("BCV")
-        );
+        var rBcvElement = await GetJsonContentAsync(client)
+            .MapTry(json => JsonDocument.Parse(json))
+            .MapTry(doc => doc.RootElement.GetProperty("sources").GetProperty("BCV"))
+            .ConfigureAwait(false);
         if (rBcvElement.IsFailure)
         {
             return Result.Failure<(decimal usdRate, DateOnly date, TimeOnly time)>(
-                "No BCV element in ExchangeDyn response."
+                $"Problem fetching ExchangeDyn rate: {rBcvElement.Error}"
             );
         }
+        var bcvElement = rBcvElement.Value;
 
         var rRateDateTime = Result.Try(
-            () => rBcvElement.Value.GetProperty("last_retrieved").GetDateTimeOffset().UtcDateTime
+            () => bcvElement.GetProperty("last_retrieved").GetDateTimeOffset().UtcDateTime
         );
         if (rRateDateTime.IsFailure)
         {
@@ -59,13 +49,13 @@ public static class ExchangeDyn
         }
 
         var rUsdRate = Result
-            .Try(() => rBcvElement.Value.GetProperty("quote").ToString())
+            .Try(() => bcvElement.GetProperty("quote").ToString())
             .MapTry(str => decimal.Parse(str, CultureInfo.InvariantCulture));
 
         if (rUsdRate.IsFailure)
         {
             return Result.Failure<(decimal usdRate, DateOnly date, TimeOnly time)>(
-                "Bsd or no USD rate in ExchangeDyn response"
+                "No quote or quote in bad format in ExchangeDyn response"
             );
         }
 
@@ -73,7 +63,7 @@ public static class ExchangeDyn
         return Result.Success((rUsdRate.Value, date, time));
     }
 
-    private static async Task<Result<string>> GetJsonContent(HttpClient client)
+    private static async Task<Result<string>> GetJsonContentAsync(HttpClient client)
     {
         try
         {
