@@ -4,6 +4,8 @@ using CSharpFunctionalExtensions;
 
 namespace Dobs.Tests.Utils;
 
+using DynRate = (decimal usdRate, DateOnly date, TimeOnly time);
+
 /// <summary>
 /// Provides a task to get the USD to VES with the ExchangeDyn API.
 /// </summary>
@@ -21,9 +23,7 @@ public static class ExchangeDyn
     /// A Result object containing a 3-tuple of (USD rate, date, time) if successful,
     /// or a Failure with an error message otherwise.
     /// </returns>
-    public static async Task<Result<(decimal usdRate, DateOnly date, TimeOnly time)>> GetRateAsync(
-        HttpClient client
-    )
+    public static async Task<Result<DynRate>> GetRateAsync(HttpClient client)
     {
         ArgumentNullException.ThrowIfNull(client);
         var rBcvElement = await GetJsonContentAsync(client)
@@ -32,7 +32,7 @@ public static class ExchangeDyn
             .ConfigureAwait(false);
         if (rBcvElement.IsFailure)
         {
-            return Result.Failure<(decimal usdRate, DateOnly date, TimeOnly time)>(
+            return Result.Failure<DynRate>(
                 $"Problem fetching ExchangeDyn rate: {rBcvElement.Error}"
             );
         }
@@ -43,9 +43,7 @@ public static class ExchangeDyn
         );
         if (rRateDateTime.IsFailure)
         {
-            return Result.Failure<(decimal usdRate, DateOnly date, TimeOnly time)>(
-                "Bad or no datetime in ExchangeDyn response."
-            );
+            return Result.Failure<DynRate>("Bad or no datetime in ExchangeDyn response.");
         }
 
         var rUsdRate = Result
@@ -54,7 +52,7 @@ public static class ExchangeDyn
 
         if (rUsdRate.IsFailure)
         {
-            return Result.Failure<(decimal usdRate, DateOnly date, TimeOnly time)>(
+            return Result.Failure<DynRate>(
                 "No quote or quote in bad format in ExchangeDyn response"
             );
         }
